@@ -40,6 +40,8 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.sqlite import SqliteSaver
 
+# ── Reranker ──────────────────────────────────────────────────────────────────
+from sentence_transformers import CrossEncoder
 
 # ─────────────────────────────────────────────────────────────────────────────
 # CONFIG
@@ -50,9 +52,11 @@ SQLITE_PATH   = "./memory.db"
 EMBED_MODEL   = "BAAI/bge-small-en-v1.5"
 MODEL_PATH    = "./models/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
 
-CHUNK_SIZE    = 600
-CHUNK_OVERLAP = 150
-TOP_K         = 3
+CHUNK_SIZE       = 600
+CHUNK_OVERLAP    = 150
+TOP_K            = 9     # chunk iniziali da recuperare (poi reranker ne sceglie 3)
+TOP_K_RERANKED   = 3     # chunk finali dopo reranking
+RERANKER_MODEL   = "BAAI/bge-reranker-base"
 
 # Prompt per riformulare la domanda tenendo conto dello storico
 QA_PROMPT = """<|im_start|>system
@@ -179,6 +183,13 @@ class LocalRAGAgent:
             verbose=False,
         )
 
+        # ── Reranker ───────────────────────────────────────────────────────
+        print(f"🔀 Carico reranker: {RERANKER_MODEL}")
+        self.reranker = CrossEncoder(
+            RERANKER_MODEL,
+            device="mps",    # Metal su Apple Silicon
+        )
+
         # ── Prompt ─────────────────────────────────────────────────────────
         self.qa_prompt = PromptTemplate(
             input_variables=["context", "question"],
@@ -193,6 +204,7 @@ class LocalRAGAgent:
 
         llm        = self.llm
         retriever  = self.retriever
+        reranker   = self.reranker
         qa_prompt  = self.qa_prompt
 
         # ── Nodo 1: passa la domanda così com'è ────────────────────────────
@@ -207,7 +219,33 @@ class LocalRAGAgent:
             sources  = list({doc.metadata.get("source", "N/A") for doc in docs})
             return {"context": context, "sources": sources}
 
-        # ── Nodo 3: genera la risposta finale ──────────────────────────────
+        # ── Nodo 3: reranking — riordina i chunk per rilevanza reale ───────
+        def rerank(state: RAGState) -> RAGState:
+            question = state["messages"][-1].content
+            chunks   = state["context"]
+            sources  = state["sources"]
+
+            if not chunks:
+                return {"context": [], "sources": []}
+
+            # Calcola score di rilevanza per ogni chunk
+            pairs  = [(question, chunk) for chunk in chunks]
+            scores = reranker.predict(pairs)
+
+            # Ordina per score decrescente e prendi i migliori
+            ranked = sorted(
+                zip(scores, chunks, sources if len(sources) == len(chunks) else [""]*len(chunks)),
+                key=lambda x: x[0],
+                reverse=True,
+            )
+
+            top_chunks  = [chunk  for _, chunk, _      in ranked[:TOP_K_RERANKED]]
+            top_sources = [source for _, _,     source in ranked[:TOP_K_RERANKED]]
+
+            print(f"  🔀 Reranking: {len(chunks)} → {len(top_chunks)} chunk")
+            return {"context": top_chunks, "sources": top_sources}
+
+        # ── Nodo 4: genera la risposta finale ──────────────────────────────
         def generate(state: RAGState) -> RAGState:
             messages = state["messages"]
             question = messages[-1].content
@@ -221,11 +259,13 @@ class LocalRAGAgent:
         graph = StateGraph(RAGState)
         graph.add_node("contextualize", contextualize)
         graph.add_node("retrieve",      retrieve)
+        graph.add_node("rerank",        rerank)
         graph.add_node("generate",      generate)
 
         graph.add_edge(START,           "contextualize")
         graph.add_edge("contextualize", "retrieve")
-        graph.add_edge("retrieve",      "generate")
+        graph.add_edge("retrieve",      "rerank")
+        graph.add_edge("rerank",        "generate")
         graph.add_edge("generate",       END)
 
         # ── Persistenza SQLite ─────────────────────────────────────────────
