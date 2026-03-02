@@ -54,8 +54,8 @@ MODEL_PATH    = "./models/Qwen2.5-7B-Instruct-Q4_K_M.gguf"
 
 CHUNK_SIZE       = 600
 CHUNK_OVERLAP    = 150
-TOP_K            = 9     # chunk iniziali da recuperare (poi reranker ne sceglie 3)
-TOP_K_RERANKED   = 3     # chunk finali dopo reranking
+TOP_K            = 20     # chunk iniziali da recuperare (poi reranker ne sceglie 5)
+TOP_K_RERANKED   = 5     # chunk finali dopo reranking
 RERANKER_MODEL   = "BAAI/bge-reranker-base"
 
 # Prompt per riformulare la domanda tenendo conto dello storico

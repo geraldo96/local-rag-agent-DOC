@@ -187,3 +187,4 @@ source .venv/bin/activate
 - [x] Apple Metal GPU acceleration
 - [ ] Solve problems with UI
 - [ ] Test the re-ranking with different top-k
+- [ ] Verify if we can filter convesation related to the agent master
