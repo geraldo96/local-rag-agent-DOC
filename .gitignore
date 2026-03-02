@@ -1,0 +1,33 @@
+# Ambienti virtuali
+venv/
+.venv/
+
+# Database locali (es. SQLite)
+*.db
+*.sqlite
+*.db-shm
+*.db-wal
+*.db-journal
+
+chroma_db/
+db/
+vector_store/
+
+# Modelli e file binari grandi
+*.bin
+*.pt
+*.pth
+*.model
+*.onnx
+models/
+*.pt
+*.pth
+*.bin
+*.gguf
+
+# Segreti
+.env
+
+# Cache e file di sistema
+__pycache__/
+.DS_Store

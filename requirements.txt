@@ -1,0 +1,29 @@
+# ── Core RAG stack ────────────────────────────────────────────────────────────
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-core>=0.3.0
+langchain-text-splitters>=0.3.0
+
+# ── LangGraph + memoria persistente ──────────────────────────────────────────
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite
+
+# ── Vector store ──────────────────────────────────────────────────────────────
+chromadb>=0.5.0
+
+# ── Embeddings HuggingFace (offline dopo il primo download) ──────────────────
+langchain-huggingface
+sentence-transformers
+huggingface_hub
+
+# ── Document loaders ──────────────────────────────────────────────────────────
+pymupdf
+unstructured[md,docx]
+python-docx
+
+# ── LLM locale GGUF con Metal ─────────────────────────────────────────────────
+# ⚠️ Installare PRIMA degli altri con questo comando dedicato:
+# CMAKE_ARGS="-DLLAMA_METAL=on" pip install llama-cpp-python --no-cache-dir
+
+# ── Interfaccia web ───────────────────────────────────────────────────────────
+gradio>=4.0.0
