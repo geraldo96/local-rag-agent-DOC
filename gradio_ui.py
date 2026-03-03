@@ -9,21 +9,22 @@ from pathlib import Path
 
 CUSTOM_CSS = """
 :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --border: #2a2d3e;
-    --accent: #6c63ff;
-    --accent2: #00d4aa;
-    --text: #e2e8f0;
-    --muted: #8892a4;
+    --bg: #0a0f0a;
+    --surface: #111a11;
+    --border: #1e321e;
+    --accent: #2d6a2d;
+    --accent-bright: #4a9e4a;
+    --accent2: #7bc67b;
+    --text: #e0ede0;
+    --muted: #7a9e7a;
     --font: 'JetBrains Mono', 'Fira Code', monospace;
 }
 body, .gradio-container { background: var(--bg) !important; font-family: var(--font); }
 .chat-window { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 12px !important; }
-.message.user { background: linear-gradient(135deg, var(--accent), #8b5cf6) !important; border-radius: 12px 12px 2px 12px !important; }
+.message.user { background: linear-gradient(135deg, var(--accent), var(--accent-bright)) !important; border-radius: 12px 12px 2px 12px !important; }
 .message.bot { background: var(--surface) !important; border: 1px solid var(--border) !important; border-radius: 12px 12px 12px 2px !important; }
-.source-box { background: #0d1117 !important; border: 1px solid var(--accent2) !important; border-radius: 8px !important; color: var(--accent2) !important; font-size: 0.8rem !important; }
-button.primary { background: linear-gradient(135deg, var(--accent), #8b5cf6) !important; border: none !important; border-radius: 8px !important; color: white !important; font-weight: 600 !important; }
+.source-box { background: #070d07 !important; border: 1px solid var(--accent2) !important; border-radius: 8px !important; color: var(--accent2) !important; font-size: 0.8rem !important; }
+button.primary { background: linear-gradient(135deg, var(--accent), var(--accent-bright)) !important; border: none !important; border-radius: 8px !important; color: white !important; font-weight: 600 !important; }
 button.secondary { background: transparent !important; border: 1px solid var(--border) !important; border-radius: 8px !important; color: var(--muted) !important; }
 input, textarea { background: var(--surface) !important; border: 1px solid var(--border) !important; color: var(--text) !important; border-radius: 8px !important; font-family: var(--font) !important; }
 label { color: var(--muted) !important; font-size: 0.8rem !important; letter-spacing: 0.05em !important; text-transform: uppercase !important; }
@@ -73,12 +74,12 @@ def launch_gradio(agent):
         gr.HTML("""
         <div style="text-align:center; padding: 2rem 0 1rem;">
             <h1 style="font-family: 'JetBrains Mono', monospace; font-size: 1.8rem;
-                       background: linear-gradient(135deg, #6c63ff, #00d4aa);
+                       background: linear-gradient(135deg, #4a9e4a, #7bc67b);
                        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
                        margin: 0; letter-spacing: -0.02em;">
                 ◈ Local RAG Agent
             </h1>
-            <p style="color: #8892a4; font-size: 0.85rem; margin-top: 0.5rem; font-family: monospace;">
+            <p style="color: #7a9e7a; font-size: 0.85rem; margin-top: 0.5rem; font-family: monospace;">
                 Completamente offline · Modello quantizzato · Documenti locali
             </p>
         </div>
@@ -90,7 +91,6 @@ def launch_gradio(agent):
                     elem_classes=["chat-window"],
                     height=500,
                     show_label=False,
-                    type="messages",
                 )
                 with gr.Row():
                     msg_box = gr.Textbox(
@@ -102,7 +102,7 @@ def launch_gradio(agent):
                     send_btn = gr.Button("Invia ▶", variant="primary", scale=1)
 
             with gr.Column(scale=1):
-                gr.HTML('<p style="color:#8892a4; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem;">Sorgenti recuperate</p>')
+                gr.HTML('<p style="color:#7a9e7a; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem;">Sorgenti recuperate</p>')
                 sources_box = gr.Textbox(
                     value="—",
                     show_label=False,
@@ -111,14 +111,14 @@ def launch_gradio(agent):
                     elem_classes=["source-box"],
                 )
 
-                gr.HTML('<hr style="border-color:#2a2d3e; margin: 1rem 0;">')
-                gr.HTML('<p style="color:#8892a4; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem;">Gestione indice</p>')
+                gr.HTML('<hr style="border-color:#1e321e; margin: 1rem 0;">')
+                gr.HTML('<p style="color:#7a9e7a; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem;">Gestione indice</p>')
 
                 docs_input = gr.Textbox(value="./docs", label="Directory documenti", lines=1)
                 rebuild_btn = gr.Button("🔄 Ricostruisci indice", variant="secondary")
                 rebuild_status = gr.Textbox(show_label=False, lines=2, interactive=False)
 
-                gr.HTML('<hr style="border-color:#2a2d3e; margin: 1rem 0;">')
+                gr.HTML('<hr style="border-color:#1e321e; margin: 1rem 0;">')
                 reset_btn = gr.Button("🗑 Reset conversazione", variant="secondary")
 
         # ── Event bindings ─────────────────────────────────────────────────
